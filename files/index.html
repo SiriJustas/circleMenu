@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Sirijustas</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Sirijustas">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <style>
+  	html, body{
+  		width: 100%;
+  		height:100%;
+  		margin: 0;
+  		padding:0;
+  	}
+  	#base{
+  		width:100%;
+  		height:100%;
+  		margin:0;
+  		padding:0;
+  	}
+  	#circle{
+  		border-radius: 50%;
+  		width:750px;
+  		height:750px;
+  		margin:auto;
+  	}
+  </style>
+</head>
+<body>
+	<div id="base">
+		<div id = "circle">
+			<canvas id="myCanvas" width="750px" height="750px"></canvas>
+		</div>
+	</div>
+	<script>
+		var menuItemsCount = 10;
+		var circleDegs = 360/menuItemsCount;
+
+
+		var circle = document.getElementById("circle");
+		var circleData = circle.getBoundingClientRect();
+		var r = (circleData.right-circleData.left)/2;
+		var centerx = (circleData.right-circleData.left)/2;
+		var centery = (circleData.bottom-circleData.top)/2;
+		var xMove = (circleData.right-circleData.left)/(menuItemsCount/2-1);
+		var yMove = (circleData.bottom-circleData.top)/(menuItemsCount/2-1);
+
+		console.log(circleData.top, circleData.right, circleData.bottom, circleData.left);
+
+
+		var pieces = [];
+		var angles = 0;
+		for(var i=0; i<menuItemsCount; i++){
+			console.log(angles);
+			pieces[i] = {startPointDeg:i*circleDegs, endPointDeg:(i+1)*circleDegs, startPointX:0, startPointY:0, centerx:(circleData.right+circleData.left)/2, centery:(circleData.top+circleData.bottom)/2,angle:angles};
+
+			if(i==0){
+				pieces[i].startPointX =  (circleData.right-circleData.left)/2;
+				pieces[i].startPointY = circleData.bottom;
+			}
+			else{
+				pieces[i].startPointX =  r * Math.sin((i)*toRadians(circleDegs))+centerx;
+				pieces[i].startPointY =  r * Math.cos((i)*toRadians(circleDegs))+centery;
+			}
+			angles+=circleDegs;
+			
+			//console.log(pieces[i]);
+			
+		}
+
+
+		var items = [];
+		for(var i=0; i<pieces.length; i++){
+			if(i>0)
+				items[i] = {startPointX:pieces[i-1].startPointX, startPointY:pieces[i-1].startPointY, endPointX:pieces[i].startPointX, endPointY:pieces[i].startPointY,startAngle:pieces[i-1].angle,endAngle:pieces[i].angle, number:i,ahref:"https://www.google.lt/", ahrefName:"Google"};
+			else{
+				items[i] = {startPointX:pieces[pieces.length-1].startPointX, startPointY:pieces[pieces.length-1].startPointY, endPointX:pieces[0].startPointX, endPointY:pieces[0].startPointY,startAngle:pieces[pieces.length-1].angle,endAngle:pieces[0].angle,number:menuItemsCount,ahref:"https://www.google.lt/",ahrefName:"Google"};
+			}
+
+		}
+		console.log(items);
+
+
+		var c = document.getElementById("myCanvas");
+		var ctx = c.getContext("2d");
+		//ctx.lineWidth = 10;
+		ctx.beginPath();
+		ctx.strokeStyle = "#000000";
+		ctx.fillStyle = "#FFFFFF";
+		ctx.arc(centerx, centery,(circleData.right-circleData.left)/2, 0, 2 * Math.PI);
+		for(var i=0; i<menuItemsCount; i++){
+			ctx.moveTo(pieces[i].startPointX,pieces[i].startPointY);
+			//console.log("Piecis X point "+pieces[i].startPointX+" Pieces Y point "+pieces[i].startPointY);
+			ctx.lineTo((circleData.right-circleData.left)/2,(circleData.bottom-circleData.top)/2);
+			/*
+			if(i>0){
+				ctx.moveTo(pieces[i].startPointX,pieces[i].startPointY);
+				ctx.lineTo(pieces[i-1].startPointX,pieces[i-1].startPointY);
+			}
+			if(i==menuItemsCount-1){
+				ctx.moveTo(pieces[i].startPointX,pieces[i].startPointY);
+				ctx.lineTo(pieces[0].startPointX,pieces[0].startPointY);
+			}*/
+		}
+		ctx.fill();
+		ctx.stroke();
+
+		function toRadians (angle) {
+		  return angle * (Math.PI / 180);
+		}
+		function toDegrees (angle) {
+		  return angle * (180 / Math.PI);
+		}
+		function fingering(event){
+			var circle = document.getElementById("circle");
+			var circleData = circle.getBoundingClientRect();
+			var c = document.getElementById("myCanvas");
+			var ctx = c.getContext("2d");
+			var x = event.clientX-circleData.left;
+			var y = event.clientY-circleData.top;
+			console.log(x + "   "+y);
+			var deltaX = centerx - x;
+			var deltaY = centery - y;
+			var res = toDegrees(Math.atan2(deltaY,deltaX));
+			if(res<=-90){
+				res+=90;
+				res*=-1;
+			}
+			else if(res>=0 && res <=180){
+				res=90+(180-res);
+			}
+			else{
+				res=270+(-1*res);
+			}
+			console.log(res);
+			var pieceOfPie = parseInt(res/circleDegs,10);
+			console.log(pieceOfPie+1);
+			var selectedItem = items[0];
+			for(var i=0; i<items.length; i++){
+				if(items[i].number == pieceOfPie+1){
+					selectedItem = items[i];
+				}
+			}
+			draw(ctx,selectedItem);
+
+		}
+
+		function draw(c, el){
+			var ctx = c;
+			var elementas = el;
+			ctx.save();
+			ctx.beginPath();
+			ctx.globalAlpha=1;
+			ctx.clearRect(0, 0, circleData.right, circleData.bottom);
+			ctx.closePath();
+			//ctx.arc(250, 250,250, Math.PI/180*(elementas.startAngle+90-(elementas.endAngle-elementas.startAngle)), Math.PI/180*(elementas.endAngle+90-(elementas.endAngle-elementas.startAngle)));
+			ctx.strokeStyle = "#000000";
+			ctx.beginPath();
+			ctx.arc(centerx, centery,(circleData.right-circleData.left)/2, 0, 2 * Math.PI);
+			for(var i=0; i<menuItemsCount; i++){
+			ctx.moveTo(pieces[i].startPointX,pieces[i].startPointY);
+			ctx.lineTo((circleData.right-circleData.left)/2,(circleData.bottom-circleData.top)/2);
+			}
+			ctx.closePath();
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.moveTo(centerx,centery);
+			ctx.arc(centerx, centery, (circleData.right-circleData.left)/2, Math.PI/180*(360-elementas.endAngle+90) ,Math.PI/180*(360-elementas.startAngle+90));
+			ctx.moveTo(centerx,centery);
+			ctx.lineTo(elementas.startPointX, elementas.startPointY);
+			ctx.moveTo(centerx,centery);
+			ctx.lineTo(elementas.endPointX, elementas.endPointY);
+			ctx.closePath();
+			ctx.strokeStyle = "#000000";
+			ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+			ctx.fill();
+			ctx.stroke();
+			ctx.restore();
+			//console.log("Laipsniolika start: "+elementas.startAngle+"Laipsniolika end: "+elementas.endAngle);
+			//console.log("Laipsniolika start: "+(360-elementas.startAngle)+"Laipsniolika end: "+(360-elementas.endAngle));
+		}
+
+		function fingerClick(ev){
+			var circle = document.getElementById("circle");
+			var circleData = circle.getBoundingClientRect();
+			var c = document.getElementById("myCanvas");
+			var ctx = c.getContext("2d");
+			var x = event.clientX-circleData.left;
+			var y = event.clientY-circleData.top;
+			console.log(x + "   "+y);
+			var deltaX = centerx - x;
+			var deltaY = centery - y;
+			var res = toDegrees(Math.atan2(deltaY,deltaX));
+			if(res<=-90){
+				res+=90;
+				res*=-1;
+			}
+			else if(res>=0 && res <=180){
+				res=90+(180-res);
+			}
+			else{
+				res=270+(-1*res);
+			}
+			var pieceOfPie = parseInt(res/circleDegs,10);
+			var selectedItem = items[0];
+			for(var i=0; i<items.length; i++){
+				if(items[i].number == pieceOfPie+1){
+					selectedItem = items[i];
+				}
+			}
+			window.location = selectedItem.ahref;
+		}
+
+		function fingerOff(ev){
+			var c = document.getElementById("myCanvas");
+			var ctx = c.getContext("2d");
+			ctx.beginPath();
+			ctx.strokeStyle = "#000000";
+			ctx.fillStyle = "#FFFFFF";
+			ctx.arc(centerx, centery,(circleData.right-circleData.left)/2, 0, 2 * Math.PI);
+			for(var i=0; i<menuItemsCount; i++){
+				ctx.moveTo(pieces[i].startPointX,pieces[i].startPointY);
+				//console.log("Piecis X point "+pieces[i].startPointX+" Pieces Y point "+pieces[i].startPointY);
+				ctx.lineTo((circleData.right-circleData.left)/2,(circleData.bottom-circleData.top)/2);
+				/*
+				if(i>0){
+					ctx.moveTo(pieces[i].startPointX,pieces[i].startPointY);
+					ctx.lineTo(pieces[i-1].startPointX,pieces[i-1].startPointY);
+				}
+				if(i==menuItemsCount-1){
+					ctx.moveTo(pieces[i].startPointX,pieces[i].startPointY);
+					ctx.lineTo(pieces[0].startPointX,pieces[0].startPointY);
+				}*/
+			}
+			ctx.fill();
+			ctx.stroke();
+		}
+		var cvvvv  = document.getElementById("myCanvas");
+		cvvvv.addEventListener('mousemove', fingering);
+		cvvvv.addEventListener('click', fingerClick);
+		cvvvv.addEventListener("mouseleave", fingerOff);
+	</script>
+</body>
+</html>
