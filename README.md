@@ -1,5 +1,5 @@
 # circleMenu
-Simple one-file  pure JS circle menu generator (ALPHA)
+Simple one-file pure JS circle menu generator (Canvas) ALPHA
 # Examples:
 
 ##     3 Parts
